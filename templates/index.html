@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <title>AI Models Interface</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root {
+            --color-bg-light: #f7f7f8;
+            --color-bg-dark: #1a1a1a;
+            --color-text-light: #333;
+            --color-text-dark: #fff;
+            --color-primary: #00ff87;
+            --color-primary-alt: #60efff;
+            --color-card-light: #fff;
+            --color-card-dark: #2a2a2a;
+            --color-input-bg-light: #fff;
+            --color-input-bg-dark: #3a3a3a;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--color-bg-dark);
+            color: var(--color-text-dark);
+            min-height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body.light-theme {
+            background-color: var(--color-bg-light);
+            color: var(--color-text-light);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .title-section h1 {
+            font-size: 2.5em;
+            background: linear-gradient(45deg, var(--color-primary), var(--color-primary-alt));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 600;
+            background: linear-gradient(45deg, var(--color-primary), var(--color-primary-alt));
+            color: #1a1a1a;
+            transition: opacity 0.3s ease;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Theme toggle button */
+        #themeToggle {
+            background: none;
+            color: inherit;
+            font-size: 1.2em;
+            padding: 8px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #themeToggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Models grid */
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .model-card, .submodel-card {
+            background-color: var(--color-card-dark);
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+            user-select: none;
+        }
+
+        body.light-theme .model-card, body.light-theme .submodel-card {
+            background-color: var(--color-card-light);
+        }
+
+        .model-card:hover, .submodel-card:hover {
+            transform: translateY(-5px);
+            background-color: var(--color-primary);
+            color: #1a1a1a;
+        }
+
+        .model-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, var(--color-primary), var(--color-primary-alt));
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .model-name {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .model-description {
+            font-size: 0.9em;
+            line-height: 1.4;
+            color: #aaa;
+        }
+
+        body.light-theme .model-description {
+            color: #555;
+        }
+
+        /* Submodels container */
+        .submodels-container {
+            margin-top: 10px;
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+        }
+
+        .submodels-container.active {
+            display: grid;
+        }
+
+        /* Chat interface */
+        .chat-interface {
+            margin-top: 40px;
+            background-color: var(--color-card-dark);
+            border-radius: 15px;
+            padding: 20px;
+            display: none;
+            flex-direction: column;
+        }
+
+        body.light-theme .chat-interface {
+            background-color: var(--color-card-light);
+        }
+
+        .chat-messages {
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: var(--color-input-bg-dark);
+            border-radius: 10px;
+            flex-grow: 1;
+        }
+
+        body.light-theme .chat-messages {
+            background-color: var(--color-input-bg-light);
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            background: #3a3a3a;
+            margin-left: auto;
+        }
+
+        body.light-theme .user-message {
+            background: #ddd;
+            color: #111;
+        }
+
+        .ai-message {
+            background: #4a4a4a;
+            margin-right: auto;
+        }
+
+        body.light-theme .ai-message {
+            background: #eee;
+            color: #111;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: var(--color-input-bg-dark);
+            color: inherit;
+            font-size: 1em;
+        }
+
+        body.light-theme input[type="text"] {
+            background: var(--color-input-bg-light);
+            color: var(--color-text-light);
+        }
+
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background-color: var(--color-card-dark);
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            color: var(--color-text-dark);
+        }
+
+        body.light-theme .modal {
+            background-color: var(--color-card-light);
+            color: var(--color-text-light);
+        }
+
+        .modal h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-weight: 700;
+            font-size: 1.5em;
+            text-align: center;
+        }
+
+        .modal form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .modal label {
+            font-weight: 600;
+        }
+
+        .modal input[type="text"],
+        .modal input[type="password"] {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 1em;
+        }
+
+        .modal button {
+            margin-top: 10px;
+        }
+
+        .modal .switch-link {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 0.9em;
+            color: var(--color-primary);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .modal .switch-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Toggle Models Button */
+        #toggleModelsBtn {
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 600;
+            background: linear-gradient(45deg, var(--color-primary), var(--color-primary-alt));
+            color: #1a1a1a;
+            transition: opacity 0.3s ease;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        #toggleModelsBtn:hover {
+            opacity: 0.9;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .models-grid {
+                grid-template-columns: 1fr;
+            }
+            .submodels-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="title-section">
+                <h1>AI Models Interface</h1>
+                <p>Выбери провайдера, чтобы увидеть модели</p>
+            </div>
+            <div class="header-buttons">
+                <button id="loginBtn">Войти</button>
+                <button id="registerBtn">Регистрация</button>
+                <button id="themeToggle" title="Переключить тему">🌙</button>
+            </div>
+        </header>
+
+        <button id="toggleModelsBtn">Модели</button>
+
+        <div class="models-grid" id="providersGrid">
+            <!-- Провайдеры будут динамически вставлены сюда -->
+        </div>
+
+        <div class="submodels-container" id="modelsGrid" style="margin-top: 30px;">
+            <!-- Модели выбранного провайдера -->
+        </div>
+
+        <div class="chat-interface" id="chatInterface">
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="input-area">
+                <input type="text" id="userInput" placeholder="Введите сообщение..." disabled>
+                <button id="sendBtn" disabled>Отправить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно авторизации -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal" id="authModalContent">
+            <h2 id="authModalTitle">Вход</h2>
+            <form id="authForm">
+                <label for="loginInput">Логин</label>
+                <input type="text" id="loginInput" name="login" required autocomplete="username" />
+                <label for="passwordInput">Пароль</label>
+                <input type="password" id="passwordInput" name="password" required autocomplete="current-password" />
+                <div id="apiKeyField" style="display:none;">
+                    <label for="apiKeyInput">API-ключ</label>
+                    <input type="text" id="apiKeyInput" name="api_key" autocomplete="off" />
+                    <small>Получить API-ключ можно на сайте <a href="https://gen-api.ru/?ref_id=260868" target="_blank" rel="noopener noreferrer">GenAPI</a></small>
+                </div>
+                <button type="submit" id="authSubmitBtn">Войти</button>
+            </form>
+            <div class="switch-link" id="switchAuthMode">Нет аккаунта? Зарегистрироваться</div>
+        </div>
+    </div>
+
+    <script>
+        let providersData = [];
+        let isAuthenticated = false;
+        let currentUser = null;
+        let selectedProvider = null;
+        let selectedModel = null;
+        let currentChatId = null;
+
+        const providersGrid = document.getElementById('providersGrid');
+        const modelsGrid = document.getElementById('modelsGrid');
+        const chatInterface = document.getElementById('chatInterface');
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        const authModal = document.getElementById('authModal');
+        const authModalTitle = document.getElementById('authModalTitle');
+        const authForm = document.getElementById('authForm');
+        const switchAuthMode = document.getElementById('switchAuthMode');
+        const apiKeyField = document.getElementById('apiKeyField');
+        const authSubmitBtn = document.getElementById('authSubmitBtn');
+        const themeToggle = document.getElementById('themeToggle');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatMessages = document.getElementById('chatMessages');
+        const toggleModelsBtn = document.getElementById('toggleModelsBtn');
+
+        let authMode = 'login'; // 'login' или 'register'
+        let modelsCollapsed = false;
+
+        async function checkAuth() {
+            try {
+                const response = await fetch('/me');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.authenticated) {
+                        isAuthenticated = true;
+                        currentUser = data.username;
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error('Ошибка проверки авторизации', e);
+            }
+            isAuthenticated = false;
+            currentUser = null;
+        }
+
+        async function init() {
+            await checkAuth();
+            if (isAuthenticated) {
+                await loadProviders();
+            } else {
+                renderProviders([]);
+            }
+            updateAuthButtons();
+            setupEventListeners();
+            loadTheme();
+        }
+
+        async function loadProviders() {
+            try {
+                const response = await fetch('/providers');
+                if (response.ok) {
+                    providersData = await response.json();
+                    renderProviders(providersData);
+                } else {
+                    alert('Ошибка загрузки провайдеров');
+                }
+            } catch (e) {
+                alert('Ошибка сети');
+                console.error(e);
+            }
+        }
+
+        function renderProviders(providers) {
+            providersGrid.innerHTML = '';
+            providers.forEach(provider => {
+                const card = document.createElement('div');
+                card.className = 'model-card';
+                card.tabIndex = 0;
+                card.setAttribute('role', 'button');
+                card.setAttribute('aria-pressed', 'false');
+                card.innerHTML = `
+                    <div class="model-icon"></div>
+                    <h3 class="model-name">${provider.name}</h3>
+                    <p class="model-description">${provider.description}</p>
+                `;
+                card.addEventListener('click', () => onProviderClick(provider));
+                card.addEventListener('keypress', e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onProviderClick(provider);
+                    }
+                });
+                providersGrid.appendChild(card);
+            });
+            modelsGrid.innerHTML = '';
+            modelsGrid.style.display = 'none';
+            chatInterface.style.display = 'none';
+            toggleModelsBtn.style.display = 'none';
+            modelsCollapsed = false;
+        }
+
+        function onProviderClick(provider) {
+            if (!isAuthenticated) {
+                openAuthModal('login');
+                return;
+            }
+            selectedProvider = provider;
+            renderModels(provider.models);
+            expandModels();
+        }
+
+        function renderModels(models) {
+            modelsGrid.innerHTML = '';
+            modelsGrid.style.display = 'grid';
+            models.forEach(model => {
+                const card = document.createElement('div');
+                card.className = 'submodel-card';
+                card.tabIndex = 0;
+                card.setAttribute('role', 'button');
+                card.setAttribute('aria-pressed', 'false');
+                card.textContent = model.title;
+                card.addEventListener('click', () => onModelClick(model));
+                card.addEventListener('keypress', e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onModelClick(model);
+                    }
+                });
+                modelsGrid.appendChild(card);
+            });
+            chatInterface.style.display = 'flex';
+        }
+
+        function onModelClick(model) {
+            selectedModel = model.name;
+            currentChatId = null;
+            addMessage('ai', `Модель "${model.title}" выбрана. Готов к работе!`);
+            userInput.disabled = false;
+            sendBtn.disabled = false;
+            userInput.focus();
+
+            collapseModels();
+        }
+
+        function collapseModels() {
+            providersGrid.style.display = 'none';
+            modelsGrid.style.display = 'none';
+            toggleModelsBtn.style.display = 'inline-block';
+            modelsCollapsed = true;
+        }
+
+        function expandModels() {
+            providersGrid.style.display = 'grid';
+            modelsGrid.style.display = 'grid';
+            toggleModelsBtn.style.display = 'none';
+            modelsCollapsed = false;
+        }
+
+        toggleModelsBtn.addEventListener('click', () => {
+            expandModels();
+        });
+
+        function clearChat() {
+            chatMessages.innerHTML = '';
+        }
+
+        function addMessage(sender, text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message ' + (sender === 'user' ? 'user-message' : 'ai-message');
+            msgDiv.textContent = text;
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        sendBtn.addEventListener('click', async () => {
+            const text = userInput.value.trim();
+            if (!text) return;
+            addMessage('user', text);
+            userInput.value = '';
+
+            if (!selectedModel) {
+                addMessage('ai', 'Пожалуйста, выберите модель');
+                return;
+            }
+
+            try {
+                const response = await fetch('/chat/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model_id: selectedModel,
+                        message: text,
+                        chat_id: currentChatId
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    addMessage('ai', data.message);
+                    currentChatId = data.chat_id;
+                } else {
+                    addMessage('ai', 'Ошибка: ' + (data.error || 'Неизвестная ошибка'));
+                }
+            } catch (e) {
+                addMessage('ai', 'Ошибка сети или сервера');
+                console.error(e);
+            }
+        });
+
+        userInput.addEventListener('keypress', e => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendBtn.click();
+            }
+        });
+
+        function openAuthModal(mode) {
+            authMode = mode;
+            authModalTitle.textContent = mode === 'login' ? 'Вход' : 'Регистрация';
+            authSubmitBtn.textContent = mode === 'login' ? 'Войти' : 'Зарегистрироваться';
+            apiKeyField.style.display = mode === 'register' ? 'block' : 'none';
+            switchAuthMode.textContent = mode === 'login' ? 'Нет аккаунта? Зарегистрироваться' : 'Есть аккаунт? Войти';
+            authForm.reset();
+            authModal.classList.add('active');
+        }
+
+        function closeAuthModal() {
+            authModal.classList.remove('active');
+        }
+
+        switchAuthMode.addEventListener('click', () => {
+            openAuthModal(authMode === 'login' ? 'register' : 'login');
+        });
+
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(authForm);
+            const login = formData.get('login').trim();
+            const password = formData.get('password').trim();
+            const api_key = formData.get('api_key')?.trim();
+
+            if (!login || !password || (authMode === 'register' && !api_key)) {
+                alert('Пожалуйста, заполните все обязательные поля.');
+                return;
+            }
+
+            try {
+                const url = authMode === 'login' ? '/login' : '/register';
+                const payload = { login, password };
+                if (authMode === 'register') payload.api_key = api_key;
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    isAuthenticated = true;
+                    currentUser = login;
+                    updateAuthButtons();
+                    closeAuthModal();
+                    alert(authMode === 'login' ? 'Вход выполнен' : 'Регистрация успешна');
+                    await loadProviders();
+                } else {
+                    alert(data.error || 'Ошибка при авторизации');
+                }
+            } catch (err) {
+                alert('Ошибка сети или сервера');
+                console.error(err);
+            }
+        });
+
+        function updateAuthButtons() {
+            if (isAuthenticated) {
+                loginBtn.style.display = 'none';
+                registerBtn.style.display = 'none';
+
+                if (!document.getElementById('logoutBtn')) {
+                    const logoutBtn = document.createElement('button');
+                    logoutBtn.id = 'logoutBtn';
+                    logoutBtn.textContent = 'Выйти';
+                    logoutBtn.addEventListener('click', logout);
+                    document.querySelector('.header-buttons').appendChild(logoutBtn);
+                }
+            } else {
+                loginBtn.style.display = 'inline-block';
+                registerBtn.style.display = 'inline-block';
+                const logoutBtn = document.getElementById('logoutBtn');
+                if (logoutBtn) logoutBtn.remove();
+                chatInterface.style.display = 'none';
+                modelsGrid.style.display = 'none';
+                providersGrid.innerHTML = '';
+                clearChat();
+            }
+        }
+
+        async function logout() {
+            try {
+                const response = await fetch('/logout', { method: 'POST' });
+                const data = await response.json();
+                if (data.success) {
+                    isAuthenticated = false;
+                    currentUser = null;
+                    updateAuthButtons();
+                    chatInterface.style.display = 'none';
+                    modelsGrid.style.display = 'none';
+                    providersGrid.innerHTML = '';
+                    clearChat();
+                    alert('Вы вышли из системы');
+                } else {
+                    alert('Ошибка при выходе');
+                }
+            } catch (err) {
+                alert('Ошибка сети или сервера');
+                console.error(err);
+            }
+        }
+
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('light-theme');
+            const isLight = document.body.classList.contains('light-theme');
+            themeToggle.textContent = isLight ? '🌙' : '☀️';
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        });
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-theme');
+                themeToggle.textContent = '🌙';
+            } else {
+                themeToggle.textContent = '☀️';
+            }
+        }
+
+        function setupEventListeners() {
+            // Здесь можно добавить дополнительные слушатели, если нужно
+        }
+
+        // Инициализация
+        init();
+    </script>
+</body>
+</html>

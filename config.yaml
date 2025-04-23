@@ -1,0 +1,58 @@
+OpenAI:
+  networks:
+    - llm_id: 'gpt-4o'
+      models:
+        - title: 'GPT-4 Omni'
+          name: gpt-4o-2024-08-06
+          max_tokens: 4096
+          context_window: 128000
+          input_price: 0.5 ₽
+          output_price: 2.0 ₽
+    - llm_id: 'gpt-4-1'
+      models:
+        - title: 'GPT-4.1 '
+          name: gpt-4.1
+          max_tokens: 33000
+          context_window: 1050000
+          input_price: 0.4 ₽
+          output_price: 1.6 ₽
+        - title: 'GPT-4.1 mini'
+          name: gpt-4.1-mini
+          max_tokens: 33000
+          context_window: 1050000
+          input_price: 0.01 ₽
+          output_price: 0.4 ₽
+        - title: 'GPT-4.1 nano'
+          name: gpt-4.1-nano
+          max_tokens: 33000
+          context_window: 1050000
+          input_price: 0.0025 ₽
+          output_price: 0.01 ₽
+
+xAI:
+  networks:
+    - llm_id: 'grok-3'
+      models:
+        - title: 'grok 3 mini'
+          name: grok-3-mini-beta
+          max_tokens: 131072
+          context_window: 131072
+          input_price: 0.6 ₽
+          output_price: 0.1 ₽
+        - title: 'grok 3'
+          name: grok-3-beta
+          max_tokens: 131072
+          context_window: 131072
+          input_price: 0.6 ₽
+          output_price: 3.0 ₽
+
+DeepSeek:
+  networks:
+    - llm_id: 'deepseek-v3'
+      models:
+        - title: 'deepseek v3'
+          name: deepseek-v3
+          max_tokens: 4096
+          context_window: 64000
+          input_price: 0.2 ₽
+          output_price: 1.0 ₽

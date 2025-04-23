@@ -1,0 +1,17 @@
+/project_root/
+│
+├── app.py                      # Flask-приложение с роутами и логикой
+├── config.yaml                 # Конфиг с моделями и провайдерами
+├── config_loader.py            # Модуль для загрузки config.yaml
+├── genapi_client.py            # Python-клиент для GenAPI (HTTP запросы)
+├── models.py                   # ORM-модели (User, Chat, Message)
+├── requirements.txt            # Зависимости проекта
+│
+├── /templates/                 # HTML-шаблоны с твоей темой
+│   └── index.html
+│
+├── /static/                    # CSS, JS, изображения
+│   ├── css/
+│   └── js/
+│
+└── /migrations/                # (опционально) миграции базы, если используешь Alembic
