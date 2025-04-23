@@ -307,24 +307,6 @@
             text-decoration: underline;
         }
 
-        /* Toggle Models Button */
-        #toggleModelsBtn {
-            cursor: pointer;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 16px;
-            font-weight: 600;
-            background: linear-gradient(45deg, var(--color-primary), var(--color-primary-alt));
-            color: #1a1a1a;
-            transition: opacity 0.3s ease;
-            margin-bottom: 20px;
-            display: none;
-        }
-
-        #toggleModelsBtn:hover {
-            opacity: 0.9;
-        }
-
         /* Responsive */
         @media (max-width: 600px) {
             .models-grid {
@@ -349,8 +331,6 @@
                 <button id="themeToggle" title="Переключить тему">🌙</button>
             </div>
         </header>
-
-        <button id="toggleModelsBtn">Модели</button>
 
         <div class="models-grid" id="providersGrid">
             <!-- Провайдеры будут динамически вставлены сюда -->
@@ -412,10 +392,8 @@
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
         const chatMessages = document.getElementById('chatMessages');
-        const toggleModelsBtn = document.getElementById('toggleModelsBtn');
 
         let authMode = 'login'; // 'login' или 'register'
-        let modelsCollapsed = false;
 
         async function checkAuth() {
             try {
@@ -487,8 +465,6 @@
             modelsGrid.innerHTML = '';
             modelsGrid.style.display = 'none';
             chatInterface.style.display = 'none';
-            toggleModelsBtn.style.display = 'none';
-            modelsCollapsed = false;
         }
 
         function onProviderClick(provider) {
@@ -498,7 +474,6 @@
             }
             selectedProvider = provider;
             renderModels(provider.models);
-            expandModels();
         }
 
         function renderModels(models) {
@@ -521,6 +496,7 @@
                 modelsGrid.appendChild(card);
             });
             chatInterface.style.display = 'flex';
+            clearChat();
         }
 
         function onModelClick(model) {
@@ -530,27 +506,7 @@
             userInput.disabled = false;
             sendBtn.disabled = false;
             userInput.focus();
-
-            collapseModels();
         }
-
-        function collapseModels() {
-            providersGrid.style.display = 'none';
-            modelsGrid.style.display = 'none';
-            toggleModelsBtn.style.display = 'inline-block';
-            modelsCollapsed = true;
-        }
-
-        function expandModels() {
-            providersGrid.style.display = 'grid';
-            modelsGrid.style.display = 'grid';
-            toggleModelsBtn.style.display = 'none';
-            modelsCollapsed = false;
-        }
-
-        toggleModelsBtn.addEventListener('click', () => {
-            expandModels();
-        });
 
         function clearChat() {
             chatMessages.innerHTML = '';
@@ -709,6 +665,9 @@
                 console.error(err);
             }
         }
+
+        loginBtn.addEventListener('click', () => openAuthModal('login'));
+        registerBtn.addEventListener('click', () => openAuthModal('register'));
 
         themeToggle.addEventListener('click', () => {
             document.body.classList.toggle('light-theme');
