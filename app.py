@@ -9,6 +9,7 @@ from config_loader import ConfigLoader
 from genapi_client import GenApiClient
 from datetime import datetime
 import logging
+import requests
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'твой_секретный_ключ_замени_на_свой'
@@ -289,6 +290,26 @@ def delete_chat(chat_id):
     db.session.delete(chat)
     db.session.commit()
     return jsonify(success=True)
+
+@app.route('/balance', methods=['GET'])
+@login_required
+def get_balance():
+    if not current_user.api_key:
+        return jsonify(error='API-ключ не установлен'), 400
+
+    headers = {
+        'Authorization': f'Bearer {current_user.api_key}',
+        'Accept': 'application/json',
+    }
+    try:
+        response = requests.get('https://api.gen-api.ru/api/v1/user', headers=headers, timeout=10)
+        response.raise_for_status()
+        user_data = response.json()
+        balance = user_data.get('balance', 0.0)
+        name = user_data.get('name', current_user.username)
+        return jsonify(username=name, balance=round(balance, 2))
+    except requests.RequestException as e:
+        return jsonify(error=f'Ошибка при получении баланса: {e}'), 500
 
 if __name__ == '__main__':
     with app.app_context():

@@ -459,7 +459,8 @@
             margin-top: 15px;
         }
 
-        input[type="text"] {
+        /* textarea авторасширяющееся с ограничением 5 строк */
+        #userInput {
             flex-grow: 1;
             padding: 12px 15px;
             border-radius: 20px;
@@ -467,9 +468,13 @@
             font-size: 1em;
             outline: none;
             transition: border-color 0.3s ease;
+            overflow-y: auto;
+            max-height: calc(1.5em * 5 + 24px); /* 5 строк по 1.5em + padding */
+            line-height: 1.5em;
+            resize: none;
         }
 
-        input[type="text"]:focus {
+        #userInput:focus {
             border-color: var(--color-primary);
         }
 
@@ -565,6 +570,97 @@
             text-decoration: underline;
         }
 
+        /* Баланс пользователя внизу боковой панели */
+        .balance-display {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background-color: var(--color-card-dark);
+            border-radius: 15px;
+            margin-top: auto;
+            gap: 10px;
+        }
+
+        .balance-display .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        .balance-info {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        #balanceUsername {
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #balanceAmount {
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        .refresh-balance-btn {
+            background: none;
+            border: none;
+            font-size: 1.4em;
+            cursor: pointer;
+            color: var(--color-primary);
+            user-select: none;
+            padding: 4px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .refresh-balance-btn:hover {
+            background-color: var(--color-primary-alt);
+            color: #1a1a1a;
+        }
+
+        body.light-theme .balance-display {
+            background-color: var(--color-card-light);
+        }
+
+        /* Анимация статуса печатает */
+        .typing-status {
+            font-style: italic;
+            color: #888;
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+
+        .typing-dots span {
+            display: inline-block;
+            animation-name: jump;
+            animation-duration: 1s;
+            animation-iteration-count: infinite;
+            animation-timing-function: ease-in-out;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-left: 2px;
+        }
+
+        .typing-dots span:nth-child(1) {
+            animation-delay: 0s;
+        }
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes jump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
         @media (max-width: 900px) {
             .main-layout {
                 flex-direction: column;
@@ -613,6 +709,10 @@
                 height: 300px;
                 margin-top: 20px;
             }
+            .balance-display {
+                margin-top: 0;
+                flex-shrink: 0;
+            }
         }
     </style>
 
@@ -627,6 +727,15 @@
             <ul id="chatList" tabindex="0" aria-label="Список чатов">
                 <!-- Список чатов будет загружен сюда -->
             </ul>
+
+            <div id="balanceDisplay" class="balance-display" aria-live="polite" aria-atomic="true" style="display:none;">
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="User Avatar" class="avatar" />
+                <div class="balance-info">
+                    <span id="balanceUsername">Имя пользователя</span>
+                    <span id="balanceAmount">0.00 ₽</span>
+                </div>
+                <button id="refreshBalanceBtn" title="Обновить баланс" aria-label="Обновить баланс" class="refresh-balance-btn">🔄</button>
+            </div>
         </aside>
 
         <div class="container">
@@ -654,7 +763,7 @@
             <div class="chat-interface" id="chatInterface" aria-live="polite" aria-atomic="false">
                 <div class="chat-messages" id="chatMessages" role="log" aria-live="polite" aria-relevant="additions"></div>
                 <div class="input-area">
-                    <input type="text" id="userInput" placeholder="Введите сообщение..." disabled aria-label="Поле ввода сообщения">
+                    <textarea id="userInput" placeholder="Введите сообщение..." rows="1" style="resize:none;" disabled aria-label="Поле ввода сообщения"></textarea>
                     <button id="sendBtn" disabled aria-label="Отправить сообщение">Отправить</button>
                 </div>
             </div>
@@ -715,6 +824,49 @@
 
         let authMode = 'login'; // 'login' или 'register'
 
+        let typingStatusInterval = null;
+
+        function showTypingStatus(modelName) {
+            clearTypingStatus();
+
+            const statusDiv = document.createElement('div');
+            statusDiv.className = 'typing-status';
+            chatMessages.appendChild(statusDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            const dotsSpan = document.createElement('span');
+            dotsSpan.className = 'typing-dots';
+            dotsSpan.innerHTML = '<span>.</span><span>.</span><span>.</span>';
+
+            let step = 0;
+            const steps = [
+                'Обработка запроса',
+                'Думаю что сказать',
+                `${modelName} печатает`
+            ];
+
+            function updateStatus() {
+                statusDiv.textContent = steps[step] + ' ';
+                statusDiv.appendChild(dotsSpan);
+                step = (step + 1) % steps.length;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            updateStatus();
+            typingStatusInterval = setInterval(updateStatus, 2000);
+        }
+
+        function clearTypingStatus() {
+            if (typingStatusInterval) {
+                clearInterval(typingStatusInterval);
+                typingStatusInterval = null;
+            }
+            const existingStatus = chatMessages.querySelector('.typing-status');
+            if (existingStatus) {
+                existingStatus.remove();
+            }
+        }
+
         async function checkAuth() {
             try {
                 const response = await fetch('/me');
@@ -733,14 +885,53 @@
             currentUser = null;
         }
 
+        async function loadBalance() {
+            if (!isAuthenticated) {
+                document.getElementById('balanceDisplay').style.display = 'none';
+                return;
+            }
+            try {
+                const response = await fetch('/balance');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (!data.error) {
+                        document.getElementById('balanceUsername').textContent = data.username;
+                        document.getElementById('balanceAmount').textContent = `${data.balance} ₽`;
+                        document.getElementById('balanceDisplay').style.display = 'flex';
+                    } else {
+                        console.error('Ошибка баланса:', data.error);
+                        document.getElementById('balanceDisplay').style.display = 'none';
+                    }
+                } else {
+                    console.error('Ошибка загрузки баланса');
+                    document.getElementById('balanceDisplay').style.display = 'none';
+                }
+            } catch (e) {
+                console.error('Ошибка сети при загрузке баланса', e);
+                document.getElementById('balanceDisplay').style.display = 'none';
+            }
+        }
+
+        // Обработчик кнопки обновления баланса
+        document.getElementById('refreshBalanceBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('refreshBalanceBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳';
+            await loadBalance();
+            btn.textContent = '🔄';
+            btn.disabled = false;
+        });
+
         async function init() {
             await checkAuth();
             if (isAuthenticated) {
                 await loadProviders();
                 await loadChats();
+                await loadBalance();
             } else {
                 renderProviders([]);
                 renderChats([]);
+                document.getElementById('balanceDisplay').style.display = 'none';
             }
             updateAuthButtons();
             setupEventListeners();
@@ -840,6 +1031,7 @@
             userInput.disabled = false;
             sendBtn.disabled = false;
             userInput.focus();
+            autoResizeTextarea();
 
             // Скрываем список моделей и провайдеров
             modelsGrid.style.display = 'none';
@@ -886,11 +1078,14 @@
             if (!text) return;
             addMessage('user', text);
             userInput.value = '';
+            autoResizeTextarea();
 
             if (!selectedModel) {
                 addMessage('ai', 'Пожалуйста, выберите модель');
                 return;
             }
+
+            showTypingStatus(selectedModel || 'Модель');
 
             try {
                 const response = await fetch('/chat/send', {
@@ -903,6 +1098,7 @@
                     })
                 });
                 const data = await response.json();
+                clearTypingStatus();
                 if (data.success) {
                     addMessage('ai', data.message);
                     currentChatId = data.chat_id;
@@ -912,17 +1108,26 @@
                     addMessage('ai', 'Ошибка: ' + (data.error || 'Неизвестная ошибка'));
                 }
             } catch (e) {
+                clearTypingStatus();
                 addMessage('ai', 'Ошибка сети или сервера');
                 console.error(e);
             }
         });
 
-        userInput.addEventListener('keypress', e => {
-            if (e.key === 'Enter') {
+        userInput.addEventListener('input', autoResizeTextarea);
+
+        userInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 sendBtn.click();
             }
         });
+
+        function autoResizeTextarea() {
+            userInput.style.height = 'auto';
+            const maxHeight = parseFloat(getComputedStyle(userInput).maxHeight);
+            userInput.style.height = Math.min(userInput.scrollHeight, maxHeight) + 'px';
+        }
 
         async function loadChats() {
             try {
@@ -1025,6 +1230,7 @@
                         userInput.disabled = false;
                         sendBtn.disabled = false;
                         userInput.focus();
+                        autoResizeTextarea();
                         setActiveChatInList(chatId);
                         if (selectedModel) {
                             updateChangeModelBtn();
@@ -1183,6 +1389,7 @@
                     alert(authMode === 'login' ? 'Вход выполнен' : 'Регистрация успешна');
                     await loadProviders();
                     await loadChats();
+                    await loadBalance();
                 } else {
                     alert(data.error || 'Ошибка при авторизации');
                 }
@@ -1215,6 +1422,7 @@
                 clearChat();
                 renderChats([]);
                 changeModelBtn.style.display = 'none';
+                document.getElementById('balanceDisplay').style.display = 'none';
             }
         }
 
@@ -1232,6 +1440,7 @@
                     clearChat();
                     renderChats([]);
                     changeModelBtn.style.display = 'none';
+                    document.getElementById('balanceDisplay').style.display = 'none';
                     alert('Вы вышли из системы');
                 } else {
                     alert('Ошибка при выходе');
