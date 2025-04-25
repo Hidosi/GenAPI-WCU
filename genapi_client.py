@@ -46,7 +46,7 @@ class GenApiClient:
             self.logger.error(f"Request error: {err}")
             raise RuntimeError(f'Error during request to GenAPI: {err}') from err
 
-    def wait_for_result(self, request_id, max_attempts=20, delay=3):
+    def wait_for_result(self, request_id, max_attempts=150, delay=3):
         self.logger.info(f"Start polling for request_id={request_id}")
         for attempt in range(max_attempts):
             status_response = self.get_request_status(request_id)

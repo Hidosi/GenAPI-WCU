@@ -28,31 +28,87 @@ OpenAI:
           context_window: 1050000
           input_price: 0.0025 ₽
           output_price: 0.01 ₽
+    - llm_id: 'o3'
+      models:
+        - title: 'o3'
+          name: o3-2025-04-16
+          max_tokens: 4096
+          context_window: 200000
+          input_price: 3.0 ₽
+          output_price: 12.0 ₽
+        - title: 'o3-mini '
+          name: o3-mini
+          max_tokens: 4096
+          context_window: 200000
+          input_price: 1.65 ₽
+          output_price: 6.6 ₽
 
 xAI:
   networks:
     - llm_id: 'grok-3'
       models:
-        - title: 'grok 3 mini'
-          name: grok-3-mini-beta
-          max_tokens: 131072
-          context_window: 131072
-          input_price: 0.6 ₽
-          output_price: 0.1 ₽
-        - title: 'grok 3'
+        - title: 'Grok 3'
           name: grok-3-beta
           max_tokens: 131072
           context_window: 131072
           input_price: 0.6 ₽
           output_price: 3.0 ₽
+        - title: 'Grok 3 mini'
+          name: grok-3-mini-beta
+          max_tokens: 131072
+          context_window: 131072
+          input_price: 0.6 ₽
+          output_price: 0.1 ₽
 
 DeepSeek:
   networks:
     - llm_id: 'deepseek-v3'
       models:
-        - title: 'deepseek v3'
+        - title: 'DeepSeek v3'
           name: deepseek-v3
           max_tokens: 4096
           context_window: 64000
           input_price: 0.2 ₽
           output_price: 1.0 ₽
+    - llm_id: 'deepseek-r1'
+      models:
+        - title: 'DeepSeek r1'
+          name: deepseek-r1
+          max_tokens: 4096
+          context_window: 64000
+          input_price: 0.2 ₽
+          output_price: 1.0 ₽
+
+Perplexity:
+  networks:
+    - llm_id: 'perplexity'
+      models:
+        - title: 'Perplexity sonar'
+          name: sonar
+          max_tokens: 4096
+          context_window: 128000
+          input_price: 0.4 ₽
+          output_price: 0.4 ₽
+
+Claude:
+  networks:
+    - llm_id: 'claude'
+      models:
+        - title: 'Haiku 3.5'
+          name: claude-3-5-haiku-20241022
+          max_tokens: 4096
+          context_window: 200000
+          input_price: 0.4 ₽
+          output_price: 1.1 ₽
+        - title: 'Sonnet 3.5'
+          name: claude-3-5-sonnet-20240620
+          max_tokens: 4096
+          context_window: 200000
+          input_price: 0.8 ₽
+          output_price: 3.0 ₽
+        - title: 'Sonnet 3.7'
+          name: claude-3-7-sonnet-20250219
+          max_tokens: 4096
+          context_window: 200000
+          input_price: 0.8 ₽
+          output_price: 3.0 ₽

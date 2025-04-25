@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Models Interface - Mobile UI Demo</title>
+<style>
+  :root {
+    --color-bg-dark: #1a1a1a;
+    --color-bg-light: #f7f7f8;
+    --color-text-dark: #fff;
+    --color-text-light: #333;
+    --color-primary: #00ff87;
+    --color-primary-alt: #60efff;
+    --color-card-dark: #2a2a2a;
+    --color-card-light: #fff;
+    --transition: 0.3s ease;
+  }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--color-bg-dark);
+    color: var(--color-text-dark);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    transition: background-color var(--transition), color var(--transition);
+  }
+  body.light-theme {
+    background-color: var(--color-bg-light);
+    color: var(--color-text-light);
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--color-card-dark);
+    padding: 10px 15px;
+    user-select: none;
+    border-bottom: 1px solid #333;
+    position: relative;
+  }
+  body.light-theme header {
+    background: var(--color-card-light);
+    border-color: #ccc;
+  }
+  .left-controls, .center-controls, .right-controls {
+    display: flex;
+    align-items: center;
+  }
+  .left-controls {
+    gap: 10px;
+  }
+  .hamburger {
+    width: 28px;
+    height: 22px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .hamburger div {
+    height: 4px;
+    background: var(--color-primary);
+    border-radius: 2px;
+    transition: background 0.3s;
+  }
+  body.light-theme .hamburger div {
+    background: var(--color-primary);
+  }
+  .logo {
+    font-weight: 700;
+    font-size: 1.2em;
+    color: var(--color-primary);
+    user-select: none;
+  }
+  .models-dropdown {
+    position: relative;
+    margin-left: 15px;
+  }
+  .models-button {
+    background: var(--color-primary);
+    border: none;
+    color: var(--color-text-dark);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.3s;
+  }
+  .models-button:hover {
+    background: #00d46a;
+  }
+  .models-list {
+    position: absolute;
+    top: 36px;
+    left: 0;
+    background: var(--color-card-dark);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.7);
+    display: none;
+    flex-direction: column;
+    min-width: 160px;
+    z-index: 1000;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  body.light-theme .models-list {
+    background: var(--color-card-light);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .models-list.active {
+    display: flex;
+  }
+  .models-list button {
+    background: none;
+    border: none;
+    color: var(--color-text-dark);
+    padding: 10px 15px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background 0.2s ease;
+    user-select: none;
+  }
+  .models-list button:hover {
+    background: var(--color-primary);
+    color: var(--color-text-dark);
+  }
+  body.light-theme .models-list button:hover {
+    background: var(--color-primary);
+    color: var(--color-text-dark);
+  }
+  .theme-toggle {
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    font-size: 1.4em;
+    cursor: pointer;
+    user-select: none;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: background 0.3s;
+  }
+  .theme-toggle:hover {
+    background: rgba(0,255,135,0.2);
+  }
+  .auth-buttons button {
+    background: var(--color-primary);
+    border: none;
+    color: var(--color-text-dark);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    margin-left: 10px;
+    transition: background 0.3s;
+  }
+  .auth-buttons button:hover {
+    background: #00d46a;
+  }
+  .sidebar {
+    position: fixed;
+    top: 50px;
+    left: 0;
+    bottom: 0;
+    width: 260px;
+    background: var(--color-card-dark);
+    box-shadow: 2px 0 8px rgba(0,0,0,0.7);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+    z-index: 1100;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  body.light-theme .sidebar {
+    background: var(--color-card-light);
+    box-shadow: 2px 0 8px rgba(0,0,0,0.15);
+  }
+  .sidebar.active {
+    transform: translateX(0);
+  }
+  .sidebar h2 {
+    margin-top: 0;
+    color: var(--color-primary);
+    user-select: none;
+  }
+  .chat-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .chat-list li {
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    background: var(--color-bg-dark);
+    color: var(--color-text-dark);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.3s;
+  }
+  .chat-list li:hover {
+    background: var(--color-primary);
+    color: var(--color-text-dark);
+  }
+  body.light-theme .chat-list li {
+    background: var(--color-card-light);
+    color: var(--color-text-light);
+  }
+  body.light-theme .chat-list li:hover {
+    background: var(--color-primary);
+    color: var(--color-text-light);
+  }
+  main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    box-sizing: border-box;
+    margin-top: 50px;
+    overflow: hidden;
+  }
+  .chat-header {
+    font-weight: 700;
+    font-size: 1.3em;
+    color: var(--color-primary);
+    margin-bottom: 10px;
+    user-select: none;
+  }
+  .chat-messages {
+    flex-grow: 1;
+    background: var(--color-card-dark);
+    border-radius: 15px;
+    padding: 15px;
+    overflow-y: auto;
+    color: var(--color-text-dark);
+    font-size: 1em;
+    line-height: 1.4;
+  }
+  body.light-theme .chat-messages {
+    background: var(--color-card-light);
+    color: var(--color-text-light);
+  }
+  .chat-input-area {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+  }
+  .chat-input-area input[type="text"] {
+    flex-grow: 1;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: none;
+    font-size: 1em;
+  }
+  .chat-input-area input[type="text"]:disabled {
+    background: #555;
+    color: #ccc;
+  }
+  body.light-theme .chat-input-area input[type="text"]:disabled {
+    background: #ddd;
+    color: #999;
+  }
+  .chat-input-area button {
+    background: var(--color-primary);
+    border: none;
+    color: var(--color-text-dark);
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.3s;
+  }
+  .chat-input-area button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .chat-input-area button:hover:not(:disabled) {
+    background: #00d46a;
+  }
+  footer {
+    height: 40px;
+    background: var(--color-card-dark);
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+    font-size: 0.9em;
+    user-select: none;
+  }
+  body.light-theme footer {
+    background: var(--color-card-light);
+  }
+  .status-text {
+    font-weight: 600;
+  }
+  .balance-text {
+    font-weight: 600;
+  }
+  @media (max-width: 600px) {
+    .sidebar {
+      width: 220px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="left-controls">
+    <div class="hamburger" id="hamburgerBtn" title="Открыть чаты">
+      <div></div><div></div><div></div>
+    </div>
+    <button class="theme-toggle" id="themeToggleBtn" title="Переключить тему">🌙</button>
+  </div>
+  <div class="center-controls">
+    <div class="logo">AI Models Interface</div>
+    <div class="models-dropdown">
+      <button class="models-button" id="modelsBtn">Модели ▼</button>
+      <div class="models-list" id="modelsList">
+        <button data-model="gpt-4o-2024-08-06">GPT-4 Omni</button>
+        <button data-model="gpt-4.1">GPT-4.1</button>
+        <button data-model="gpt-4.1-mini">GPT-4.1 mini</button>
+        <button data-model="gpt-4.1-nano">GPT-4.1 nano</button>
+        <button data-model="grok-3-mini-beta">grok 3 mini</button>
+        <button data-model="grok-3-beta">grok 3</button>
+        <button data-model="deepseek-v3">deepseek v3</button>
+      </div>
+    </div>
+  </div>
+  <div class="right-controls auth-buttons" id="authButtons">
+    <button id="loginBtn">Войти</button>
+    <button id="registerBtn">Регистрация</button>
+  </div>
+</header>
+
+<div class="sidebar" id="sidebar">
+  <h2>Чаты</h2>
+  <ul class="chat-list" id="chatList">
+    <li>Чат 1</li>
+    <li>Чат 2</li>
+    <li>Чат 3</li>
+  </ul>
+</div>
+
+<main>
+  <div class="chat-header" id="chatHeader">Выберите модель и чат</div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-input-area">
+    <input type="text" id="chatInput" placeholder="Введите сообщение..." disabled />
+    <button id="sendBtn" disabled>Отправить</button>
+  </div>
+</main>
+
+<footer>
+  <div class="status-text" id="statusText">Модель не выбрана</div>
+  <div class="balance-text" id="balanceText">Баланс: 0 ₽</div>
+</footer>
+
+<script>
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+  const sidebar = document.getElementById('sidebar');
+  const modelsBtn = document.getElementById('modelsBtn');
+  const modelsList = document.getElementById('modelsList');
+  const chatHeader = document.getElementById('chatHeader');
+  const chatInput = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const chatMessages = document.getElementById('chatMessages');
+  const statusText = document.getElementById('statusText');
+  const balanceText = document.getElementById('balanceText');
+  const authButtons = document.getElementById('authButtons');
+
+  let sidebarOpen = false;
+  let modelsOpen = false;
+  let selectedModel = null;
+  let isAuthenticated = false;
+  let balance = 0;
+
+  hamburgerBtn.addEventListener('click', () => {
+    sidebarOpen = !sidebarOpen;
+    sidebar.classList.toggle('active', sidebarOpen);
+  });
+
+  modelsBtn.addEventListener('click', () => {
+    modelsOpen = !modelsOpen;
+    modelsList.classList.toggle('active', modelsOpen);
+  });
+
+  modelsList.addEventListener('click', (e) => {
+    if (e.target.tagName === 'BUTTON') {
+      selectedModel = e.target.dataset.model;
+      chatHeader.textContent = `Модель: ${e.target.textContent}`;
+      chatInput.disabled = false;
+      sendBtn.disabled = false;
+      chatInput.focus();
+      chatMessages.innerHTML = '';
+      addMessage('ai', `Модель "${e.target.textContent}" выбрана. Готов к работе!`);
+      statusText.textContent = `Модель "${e.target.textContent}" выбрана`;
+      modelsList.classList.remove('active');
+      modelsOpen = false;
+    }
+  });
+
+  sendBtn.addEventListener('click', () => {
+    const text = chatInput.value.trim();
+    if (!text || !selectedModel) return;
+    addMessage('user', text);
+    chatInput.value = '';
+    statusText.textContent = `Модель "${selectedModel}" печатает...`;
+    sendBtn.disabled = true;
+    chatInput.disabled = true;
+
+    // Заглушка имитации запроса к API
+    setTimeout(() => {
+      const responseText = `Ответ от модели "${selectedModel}": ${text.split('').reverse().join('')}`;
+      addMessage('ai', responseText);
+      statusText.textContent = `Модель "${selectedModel}" выбрана`;
+      sendBtn.disabled = false;
+      chatInput.disabled = false;
+      chatInput.focus();
+
+      // Обновляем баланс (заглушка)
+      balance += 1.23;
+      balanceText.textContent = `Баланс: ${balance.toFixed(2)} ₽`;
+    }, 1500);
+  });
+
+  chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      sendBtn.click();
+    }
+  });
+
+  function addMessage(sender, text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    div.style.marginBottom = '10px';
+    div.style.padding = '10px';
+    div.style.borderRadius = '10px';
+    div.style.maxWidth = '70%';
+    div.style.wordWrap = 'break-word';
+    if (sender === 'user') {
+      div.style.background = '#3a3a3a';
+      div.style.color = '#fff';
+      div.style.marginLeft = 'auto';
+    } else {
+      div.style.background = '#4a4a4a';
+      div.style.color = '#fff';
+      div.style.marginRight = 'auto';
+    }
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  // Тема переключение
+  const themeToggleBtn = document.getElementById('themeToggleBtn');
+  themeToggleBtn.addEventListener('click', () => {
+    document.body.classList.toggle('light-theme');
+    const isLight = document.body.classList.contains('light-theme');
+    themeToggleBtn.textContent = isLight ? '🌙' : '☀️';
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+  });
+  // Загрузка темы из localStorage
+  window.addEventListener('load', () => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      document.body.classList.add('light-theme');
+      themeToggleBtn.textContent = '🌙';
+    } else {
+      themeToggleBtn.textContent = '☀️';
+    }
+  });
+
+  // Заглушка авторизации
+  function updateAuthButtons() {
+    if (isAuthenticated) {
+      authButtons.innerHTML = '<button id="logoutBtn">Выйти</button>';
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        isAuthenticated = false;
+        updateAuthButtons();
+        alert('Вы вышли из системы');
+      });
+    } else {
+      authButtons.innerHTML = `
+        <button id="loginBtn">Войти</button>
+        <button id="registerBtn">Регистрация</button>
+      `;
+      document.getElementById('loginBtn').addEventListener('click', () => alert('Открыть окно входа'));
+      document.getElementById('registerBtn').addEventListener('click', () => alert('Открыть окно регистрации'));
+    }
+  }
+  updateAuthButtons();
+
+</script>
+
+</body>
+</html>

@@ -35,6 +35,7 @@ class Chat(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120))
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    model_name = db.Column(db.String(120), nullable=True)  # Новое поле для модели
     messages = db.relationship('Message', backref='chat', lazy=True, cascade="all, delete-orphan")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -176,8 +177,12 @@ def chat_send():
         chat = Chat.query.filter_by(id=chat_id, user_id=current_user.id).first()
         if not chat:
             return jsonify(success=False, error='Чат не найден')
+        # Обновляем модель, если изменилась
+        if chat.model_name != model_name:
+            chat.model_name = model_name
+            db.session.commit()
     else:
-        chat = Chat(title='Новый чат', user_id=current_user.id)
+        chat = Chat(title='Новый чат', user_id=current_user.id, model_name=model_name)
         db.session.add(chat)
         db.session.commit()
 
@@ -244,7 +249,48 @@ def chat_send():
 
     return jsonify(success=True, message=assistant_text, chat_id=chat.id)
 
+@app.route('/chats', methods=['GET'])
+@login_required
+def get_chats():
+    chats = Chat.query.filter_by(user_id=current_user.id).order_by(Chat.created_at.desc()).all()
+    chats_data = [{'id': c.id, 'title': c.title or f'Чат #{c.id}', 'model_name': c.model_name} for c in chats]
+    return jsonify(chats_data)
+
+@app.route('/chats/<int:chat_id>/messages', methods=['GET'])
+@login_required
+def get_chat_messages(chat_id):
+    chat = Chat.query.filter_by(id=chat_id, user_id=current_user.id).first()
+    if not chat:
+        return jsonify(success=False, error='Чат не найден'), 404
+    messages = Message.query.filter_by(chat_id=chat.id).order_by(Message.created_at).all()
+    messages_data = [{'role': m.role, 'content': m.content} for m in messages]
+    return jsonify(success=True, messages=messages_data)
+
+@app.route('/chats/<int:chat_id>', methods=['PUT'])
+@login_required
+def rename_chat(chat_id):
+    data = request.json
+    new_title = data.get('title', '').strip()
+    if not new_title:
+        return jsonify(success=False, error='Название не может быть пустым'), 400
+    chat = Chat.query.filter_by(id=chat_id, user_id=current_user.id).first()
+    if not chat:
+        return jsonify(success=False, error='Чат не найден'), 404
+    chat.title = new_title
+    db.session.commit()
+    return jsonify(success=True, title=new_title)
+
+@app.route('/chats/<int:chat_id>', methods=['DELETE'])
+@login_required
+def delete_chat(chat_id):
+    chat = Chat.query.filter_by(id=chat_id, user_id=current_user.id).first()
+    if not chat:
+        return jsonify(success=False, error='Чат не найден'), 404
+    db.session.delete(chat)
+    db.session.commit()
+    return jsonify(success=True)
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True, port=5050)
+    app.run(debug=True, host='0.0.0.0', port=5055)
