@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Models Interface - Mobile</title>
+<style>
+  :root {
+    --color-bg-light: #f7f7f8;
+    --color-bg-dark: #1a1a1a;
+    --color-text-light: #333;
+    --color-text-dark: #fff;
+    --color-primary: #00a2ff;
+    --color-primary-alt: #60c0ff;
+    --color-card-light: #fff;
+    --color-card-dark: #2a2a2a;
+    --color-input-bg-light: #fff;
+    --color-input-bg-dark: #3a3a3a;
+    --transition: 0.3s ease;
+  }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--color-bg-dark);
+    color: var(--color-text-dark);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    transition: background-color var(--transition), color var(--transition);
+  }
+  body.light-theme {
+    background-color: var(--color-bg-light);
+    color: var(--color-text-light);
+  }
+  header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: var(--color-card-dark);
+    padding: 10px 15px;
+    user-select: none;
+    border-bottom: 1px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 1300;
+  }
+  body.light-theme header {
+    background: var(--color-card-light);
+    border-color: #ccc;
+  }
+  .left-controls, .center-controls, .right-controls {
+    display: flex;
+    align-items: center;
+  }
+  .left-controls {
+    gap: 10px;
+  }
+  .hamburger {
+    width: 28px;
+    height: 22px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .hamburger div {
+    height: 4px;
+    background: var(--color-primary);
+    border-radius: 2px;
+    transition: background 0.3s;
+  }
+  body.light-theme .hamburger div {
+    background: var(--color-primary);
+  }
+  .logo {
+    font-weight: 700;
+    font-size: 1.2em;
+    color: var(--color-primary);
+    user-select: none;
+  }
+  .models-dropdown {
+    position: relative;
+    margin-left: 15px;
+  }
+  .models-button {
+    background: var(--color-primary);
+    border: none;
+    color: var(--color-text-dark);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.3s;
+  }
+  .models-button:hover {
+    background: var(--color-primary-alt);
+  }
+  .models-list {
+    position: absolute;
+    top: 36px;
+    left: 0;
+    background: var(--color-card-dark);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.7);
+    display: none;
+    flex-direction: column;
+    min-width: 180px;
+    z-index: 1000;
+    max-height: 250px;
+    overflow-y: auto;
+  }
+  body.light-theme .models-list {
+    background: var(--color-card-light);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .models-list.active {
+    display: flex;
+  }
+  .models-list button {
+    background: none;
+    border: none;
+    color: var(--color-text-dark);
+    padding: 10px 15px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background 0.2s ease;
+    user-select: none;
+  }
+  .models-list button:hover {
+    background: var(--color-primary);
+    color: #1a1a1a;
+  }
+  body.light-theme .models-list button:hover {
+    background: var(--color-primary);
+    color: #1a1a1a;
+  }
+  .theme-toggle {
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    font-size: 1.4em;
+    cursor: pointer;
+    user-select: none;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: background 0.3s;
+  }
+  .theme-toggle:hover {
+    background: rgba(0,162,255,0.2);
+  }
+  .auth-buttons button {
+    background: var(--color-primary);
+    border: none;
+    color: var(--color-text-dark);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    margin-left: 10px;
+    transition: background 0.3s;
+  }
+  .auth-buttons button:hover {
+    background: var(--color-primary-alt);
+  }
+  .sidebar {
+    position: fixed;
+    top: 50px;
+    left: 0;
+    bottom: 0;
+    width: 260px;
+    background: var(--color-card-dark);
+    box-shadow: 2px 0 8px rgba(0,0,0,0.7);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+    z-index: 1100;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  body.light-theme .sidebar {
+    background: var(--color-card-light);
+    box-shadow: 2px 0 8px rgba(0,0,0,0.15);
+  }
+  .sidebar.active {
+    transform: translateX(0);
+  }
+  .sidebar h2 {
+    margin-top: 0;
+    color: var(--color-primary);
+    user-select: none;
+  }
+  #newChatBtn {
+    width: 100%;
+    padding: 10px 0;
+    margin-bottom: 15px;
+    border: none;
+    border-radius: 12px;
+    background: var(--color-primary);
+    color: #1a1a1a;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.3s;
+  }
+  #newChatBtn:hover {
+    background: var(--color-primary-alt);
+  }
+  .chat-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .chat-list li {
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    background: var(--color-bg-dark);
+    color: var(--color-text-dark);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.3s;
+  }
+  .chat-list li:hover,
+  .chat-list li.active {
+    background: var(--color-primary);
+    color: #1a1a1a;
+    font-weight: 700;
+  }
+  body.light-theme .chat-list li {
+    background: var(--color-card-light);
+    color: var(--color-text-light);
+  }
+  body.light-theme .chat-list li:hover,
+  body.light-theme .chat-list li.active {
+    background: var(--color-primary);
+    color: #1a1a1a;
+  }
+  main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    box-sizing: border-box;
+    margin-top: 50px; /* Отступ под фиксированную шапку */
+    overflow: hidden;
+  }
+  .chat-header {
+    font-weight: 700;
+    font-size: 1.3em;
+    color: var(--color-primary);
+    margin-bottom: 10px;
+    user-select: none;
+  }
+  .chat-messages {
+    flex-grow: 1;
+    background: var(--color-card-dark);
+    border-radius: 15px;
+    padding: 15px;
+    overflow-y: auto;
+    color: var(--color-text-dark);
+    font-size: 1em;
+    line-height: 1.4;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  body.light-theme .chat-messages {
+    background: var(--color-card-light);
+    color: var(--color-text-light);
+  }
+  .message {
+    max-width: 70%;
+    padding: 8px 12px;
+    border-radius: 20px;
+    word-wrap: break-word;
+    font-size: 1em;
+    line-height: 1.4;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    white-space: normal;
+    hyphens: auto;
+  }
+  .user-message {
+    background-color: #0084ff;
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+    border-bottom-left-radius: 20px;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+  }
+  .ai-message {
+    background-color: #e5e5ea;
+    color: black;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 20px;
+    border-top-right-radius: 20px;
+    border-top-left-radius: 20px;
+  }
+  .chat-input-area {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+  }
+  #chatInput {
+    flex-grow: 1;
+    padding: 12px 16px;
+    border-radius: 20px;
+    border: 1px solid #555;
+    font-size: 1em;
+    background: var(--color-input-bg-dark);
+    color: var(--color-text-dark);
+    outline: none;
+    transition: border-color 0.3s ease;
+    resize: none;
+    overflow-y: auto;
+    line-height: 1.5em;
+    max-height: calc(1.5em * 5 + 24px);
+  }
+  body.light-theme #chatInput {
+    background: var(--color-input-bg-light);
+    color: var(--color-text-light);
+    border-color: #ccc;
+  }
+  #chatInput:disabled {
+    background: #555;
+    color: #ccc;
+    cursor: not-allowed;
+  }
+  body.light-theme #chatInput:disabled {
+    background: #ddd;
+    color: #999;
+  }
+  .chat-input-area button {
+    background: var(--color-primary);
+    border: none;
+    color: var(--color-text-dark);
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.3s;
+  }
+  .chat-input-area button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .chat-input-area button:hover:not(:disabled) {
+    background: var(--color-primary-alt);
+  }
+  footer {
+    height: 40px;
+    background: var(--color-card-dark);
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+    font-size: 0.9em;
+    user-select: none;
+  }
+  body.light-theme footer {
+    background: var(--color-card-light);
+  }
+  .status-text {
+    font-weight: 600;
+  }
+  .balance-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .balance-text {
+    font-weight: 600;
+  }
+  #refreshBalanceBtn {
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    font-size: 1.2em;
+    cursor: pointer;
+    user-select: none;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.3s;
+  }
+  #refreshBalanceBtn:hover:not(:disabled) {
+    color: var(--color-primary-alt);
+  }
+  #refreshBalanceBtn:disabled {
+    cursor: default;
+    color: #888;
+  }
+  /* Модальное окно авторизации */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1200;
+  }
+  .modal-overlay.active {
+    display: flex;
+  }
+  .modal {
+    background-color: var(--color-card-dark);
+    padding: 30px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    color: var(--color-text-dark);
+  }
+  body.light-theme .modal {
+    background-color: var(--color-card-light);
+    color: var(--color-text-light);
+  }
+  .modal h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-weight: 700;
+    font-size: 1.5em;
+    text-align: center;
+  }
+  .modal form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  .modal label {
+    font-weight: 600;
+  }
+  .modal input[type="text"],
+  .modal input[type="password"] {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1em;
+  }
+  .modal button {
+    margin-top: 10px;
+    background: var(--color-primary);
+    border: none;
+    color: var(--color-text-dark);
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .modal button:hover {
+    background: var(--color-primary-alt);
+  }
+  .modal .switch-link {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 0.9em;
+    color: var(--color-primary);
+    cursor: pointer;
+    user-select: none;
+  }
+  .modal .switch-link:hover {
+    text-decoration: underline;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="left-controls">
+    <div class="hamburger" id="hamburgerBtn" title="Открыть чаты" aria-label="Открыть чаты" role="button" tabindex="0">
+      <div></div><div></div><div></div>
+    </div>
+    <button class="theme-toggle" id="themeToggleBtn" title="Переключить тему" aria-label="Переключить тему">🌙</button>
+  </div>
+  <div class="center-controls">
+    <div class="logo">AI Models Interface</div>
+    <div class="models-dropdown">
+      <button class="models-button" id="modelsBtn" aria-haspopup="listbox" aria-expanded="false" aria-controls="modelsList">Модели ▼</button>
+      <div class="models-list" id="modelsList" role="listbox" tabindex="-1" aria-label="Список моделей">
+        <!-- Модели будут загружены сюда -->
+      </div>
+    </div>
+  </div>
+  <div class="right-controls auth-buttons" id="authButtons" aria-label="Кнопки авторизации">
+    <!-- Кнопки авторизации будут здесь -->
+  </div>
+</header>
+
+<div class="sidebar" id="sidebar" aria-label="Список чатов" tabindex="0">
+  <h2>Чаты</h2>
+  <button id="newChatBtn">➕ Новый чат</button>
+  <ul class="chat-list" id="chatList" role="list" tabindex="0">
+    <!-- Чаты будут загружены сюда -->
+  </ul>
+</div>
+
+<main>
+  <div class="chat-header" id="chatHeader" aria-live="polite" aria-atomic="true">Выберите модель и чат</div>
+  <div class="chat-messages" id="chatMessages" role="log" aria-live="polite" aria-relevant="additions"></div>
+  <div class="chat-input-area">
+    <textarea id="chatInput" placeholder="Введите сообщение..." disabled aria-label="Поле ввода сообщения" autocomplete="off" rows="1"></textarea>
+    <button id="sendBtn" disabled aria-label="Отправить сообщение">Отправить</button>
+  </div>
+</main>
+
+<footer>
+  <div class="status-text" id="statusText">Модель не выбрана</div>
+  <div class="balance-container">
+    <div class="balance-text" id="balanceText">Баланс: 0 ₽</div>
+    <button id="refreshBalanceBtn" title="Обновить баланс" aria-label="Обновить баланс">🔄</button>
+  </div>
+</footer>
+
+<!-- Модальное окно авторизации -->
+<div class="modal-overlay" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+  <div class="modal" id="authModalContent">
+    <h2 id="authModalTitle">Вход</h2>
+    <form id="authForm">
+      <label for="loginInput">Логин</label>
+      <input type="text" id="loginInput" name="login" required autocomplete="username" />
+      <label for="passwordInput">Пароль</label>
+      <input type="password" id="passwordInput" name="password" required autocomplete="current-password" />
+      <div id="apiKeyField" style="display:none;">
+        <label for="apiKeyInput">API-ключ</label>
+        <input type="text" id="apiKeyInput" name="api_key" autocomplete="off" />
+        <small>Получить API-ключ можно на сайте <a href="https://gen-api.ru/?ref_id=260868" target="_blank" rel="noopener noreferrer">GenAPI</a></small>
+      </div>
+      <button type="submit" id="authSubmitBtn">Войти</button>
+    </form>
+    <div class="switch-link" id="switchAuthMode" role="button" tabindex="0">Нет аккаунта? Зарегистрироваться</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+<script>
+  // Элементы
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+  const sidebar = document.getElementById('sidebar');
+  const modelsBtn = document.getElementById('modelsBtn');
+  const modelsList = document.getElementById('modelsList');
+  const chatHeader = document.getElementById('chatHeader');
+  const chatInput = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const chatMessages = document.getElementById('chatMessages');
+  const statusText = document.getElementById('statusText');
+  const balanceText = document.getElementById('balanceText');
+  const authButtons = document.getElementById('authButtons');
+  const newChatBtn = document.getElementById('newChatBtn');
+  const refreshBalanceBtn = document.getElementById('refreshBalanceBtn');
+
+  const authModal = document.getElementById('authModal');
+  const authModalTitle = document.getElementById('authModalTitle');
+  const authForm = document.getElementById('authForm');
+  const switchAuthMode = document.getElementById('switchAuthMode');
+  const apiKeyField = document.getElementById('apiKeyField');
+  const authSubmitBtn = document.getElementById('authSubmitBtn');
+  const themeToggleBtn = document.getElementById('themeToggleBtn');
+  const chatList = document.getElementById('chatList');
+
+  // Состояния
+  let sidebarOpen = false;
+  let modelsOpen = false;
+  let selectedModel = null;
+  let selectedModelTitle = null;
+  let isAuthenticated = false;
+  let balance = 0;
+  let currentChatId = null;
+  let authMode = 'login'; // 'login' или 'register'
+  let modelNameToTitle = {};
+
+  // Функции
+
+  function toggleSidebar() {
+    sidebarOpen = !sidebarOpen;
+    sidebar.classList.toggle('active', sidebarOpen);
+  }
+
+  function toggleModelsList() {
+    modelsOpen = !modelsOpen;
+    modelsList.classList.toggle('active', modelsOpen);
+    modelsBtn.setAttribute('aria-expanded', modelsOpen);
+  }
+
+  function closeModelsList() {
+    modelsOpen = false;
+    modelsList.classList.remove('active');
+    modelsBtn.setAttribute('aria-expanded', 'false');
+  }
+
+  function addMessage(sender, text) {
+    const div = document.createElement('div');
+    div.className = 'message ' + (sender === 'user' ? 'user-message' : 'ai-message');
+    div.innerHTML = marked.parse(text);
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    div.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
+  }
+
+  function clearChat() {
+    chatMessages.innerHTML = '';
+  }
+
+  async function checkAuth() {
+    try {
+      const response = await fetch('/me');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.authenticated) {
+          isAuthenticated = true;
+          return;
+        }
+      }
+    } catch (e) {
+      console.error('Ошибка проверки авторизации', e);
+    }
+    isAuthenticated = false;
+  }
+
+  async function loadBalance() {
+    if (!isAuthenticated) {
+      balanceText.textContent = 'Баланс: 0 ₽';
+      return;
+    }
+    try {
+      const response = await fetch('/balance');
+      if (response.ok) {
+        const data = await response.json();
+        if (!data.error) {
+          balance = data.balance;
+          balanceText.textContent = `Баланс: ${balance} ₽`;
+        }
+      }
+    } catch (e) {
+      console.error('Ошибка загрузки баланса', e);
+    }
+  }
+
+  refreshBalanceBtn.addEventListener('click', async () => {
+    refreshBalanceBtn.disabled = true;
+    refreshBalanceBtn.textContent = '⏳';
+    await loadBalance();
+    refreshBalanceBtn.textContent = '🔄';
+    refreshBalanceBtn.disabled = false;
+  });
+
+  async function loadProviders() {
+    try {
+      const response = await fetch('/providers');
+      if (response.ok) {
+        const providers = await response.json();
+        modelNameToTitle = {};
+        providers.forEach(provider => {
+          provider.models.forEach(model => {
+            modelNameToTitle[model.name] = model.title;
+          });
+        });
+        renderModelsFromProviders(providers);
+      } else {
+        console.error('Ошибка загрузки провайдеров', response.status);
+      }
+    } catch (e) {
+      console.error('Ошибка загрузки провайдеров', e);
+    }
+  }
+
+  function renderModelsFromProviders(providers) {
+    modelsList.innerHTML = '';
+    providers.forEach(provider => {
+      // Заголовок провайдера
+      const header = document.createElement('div');
+      header.textContent = provider.name;
+      header.style.fontWeight = '700';
+      header.style.padding = '8px 12px';
+      header.style.color = 'var(--color-primary)';
+      modelsList.appendChild(header);
+
+      provider.models.forEach(model => {
+        const btn = document.createElement('button');
+        btn.textContent = model.title;
+        btn.dataset.model = model.name;
+        btn.style.background = 'none';
+        btn.style.border = 'none';
+        btn.style.color = 'var(--color-text-dark)';
+        btn.style.padding = '10px 15px';
+        btn.style.textAlign = 'left';
+        btn.style.width = '100%';
+        btn.style.cursor = 'pointer';
+        btn.style.userSelect = 'none';
+        btn.addEventListener('mouseenter', () => {
+          btn.style.backgroundColor = 'var(--color-primary)';
+          btn.style.color = '#1a1a1a';
+        });
+        btn.addEventListener('mouseleave', () => {
+          btn.style.backgroundColor = 'transparent';
+          btn.style.color = 'var(--color-text-dark)';
+        });
+        btn.addEventListener('click', async () => {
+          selectedModel = model.name;
+          selectedModelTitle = model.title;
+          chatHeader.textContent = `Модель: ${model.title}`;
+          chatInput.disabled = false;
+          sendBtn.disabled = false;
+          chatInput.focus();
+
+          // Если есть текущий чат, обновим модель на сервере
+          if (currentChatId) {
+            try {
+              await fetch(`/chats/${currentChatId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model_name: selectedModel })
+              });
+            } catch (e) {
+              console.error('Ошибка обновления модели чата', e);
+            }
+          }
+
+          clearChat();
+          addMessage('ai', `Модель "${model.title}" выбрана. Готов к работе!`);
+          statusText.textContent = `Модель "${model.title}" выбрана`;
+          closeModelsList();
+        });
+        modelsList.appendChild(btn);
+      });
+    });
+  }
+
+  async function loadChats() {
+    if (!isAuthenticated) {
+      chatList.innerHTML = '<li>Пожалуйста, войдите в систему</li>';
+      return;
+    }
+    try {
+      const response = await fetch('/chats');
+      if (response.ok) {
+        const chats = await response.json();
+        renderChats(chats);
+      }
+    } catch (e) {
+      console.error('Ошибка загрузки чатов', e);
+    }
+  }
+
+  function renderChats(chats) {
+    chatList.innerHTML = '';
+    if (!chats.length) {
+      chatList.innerHTML = '<li>Чатов нет</li>';
+      return;
+    }
+    chats.forEach(chat => {
+      const li = document.createElement('li');
+      li.textContent = chat.title || `Чат #${chat.id}`;
+      li.tabIndex = 0;
+      li.style.cursor = 'pointer';
+      if (chat.id === currentChatId) {
+        li.classList.add('active');
+      }
+      li.addEventListener('click', () => selectChat(chat.id, chat.model_name, chat.title));
+      li.addEventListener('keypress', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          selectChat(chat.id, chat.model_name, chat.title);
+        }
+      });
+      chatList.appendChild(li);
+    });
+  }
+
+  async function selectChat(chatId, modelName, chatTitle) {
+    if (!isAuthenticated) {
+      openAuthModal('login');
+      return;
+    }
+    currentChatId = chatId;
+    selectedModel = modelName;
+    selectedModelTitle = modelNameToTitle[modelName] || modelName || 'Модель не выбрана';
+    chatHeader.textContent = `Чат: ${chatTitle || 'Без названия'}`;
+    clearChat();
+    try {
+      const response = await fetch(`/chats/${chatId}/messages`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          data.messages.forEach(msg => addMessage(msg.role === 'user' ? 'user' : 'ai', msg.content));
+          chatInput.disabled = false;
+          sendBtn.disabled = false;
+          chatInput.focus();
+          statusText.textContent = `Модель "${selectedModelTitle}" выбрана`;
+          toggleSidebar(); // Закрыть боковую панель после выбора
+          renderChats(await fetchChatsForRender());
+        } else {
+          alert('Ошибка загрузки сообщений чата');
+        }
+      } else {
+        alert('Ошибка загрузки сообщений чата');
+      }
+    } catch (e) {
+      alert('Ошибка сети при загрузке сообщений');
+      console.error(e);
+    }
+  }
+
+  async function fetchChatsForRender() {
+    try {
+      const response = await fetch('/chats');
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (e) {
+      console.error('Ошибка загрузки чатов', e);
+    }
+    return [];
+  }
+
+  function autoResizeTextarea() {
+    chatInput.style.height = 'auto';
+    const maxHeight = parseFloat(getComputedStyle(chatInput).maxHeight);
+    chatInput.style.height = Math.min(chatInput.scrollHeight, maxHeight) + 'px';
+  }
+
+  chatInput.addEventListener('input', autoResizeTextarea);
+
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      // Не отправляем сообщение по Enter, а просто добавляем новую строку
+      e.stopPropagation();
+    }
+  });
+
+  async function sendMessage() {
+    const text = chatInput.value.trim();
+    if (!text || !selectedModel) return;
+    addMessage('user', text);
+    chatInput.value = '';
+    autoResizeTextarea();
+    chatInput.disabled = true;
+    sendBtn.disabled = true;
+    statusText.textContent = `Модель "${selectedModelTitle}" печатает...`;
+
+    try {
+      const response = await fetch('/chat/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model_id: selectedModel,
+          message: text,
+          chat_id: currentChatId
+        })
+      });
+      const data = await response.json();
+      if (data.success) {
+        addMessage('ai', data.message);
+        currentChatId = data.chat_id;
+        await loadChats();
+        statusText.textContent = `Модель "${selectedModelTitle}" выбрана`;
+      } else {
+        addMessage('ai', 'Ошибка: ' + (data.error || 'Неизвестная ошибка'));
+      }
+    } catch (e) {
+      addMessage('ai', 'Ошибка сети или сервера');
+      console.error(e);
+    } finally {
+      chatInput.disabled = false;
+      sendBtn.disabled = false;
+      chatInput.focus();
+      await loadBalance();
+    }
+  }
+
+  // Создание нового чата
+  newChatBtn.addEventListener('click', async () => {
+    if (!isAuthenticated) {
+      openAuthModal('login');
+      return;
+    }
+    try {
+      // Создаём чат с пустым сообщением и без модели
+      const response = await fetch('/chat/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model_id: null,
+          message: '',
+          chat_id: null
+        })
+      });
+      const data = await response.json();
+      if (data.success) {
+        currentChatId = data.chat_id;
+        selectedModel = null;
+        selectedModelTitle = null;
+        chatHeader.textContent = 'Новый чат';
+        clearChat();
+        chatInput.disabled = true;
+        sendBtn.disabled = true;
+        statusText.textContent = 'Выберите модель для нового чата';
+
+        // Свернуть боковую панель с чатами
+        sidebarOpen = false;
+        sidebar.classList.remove('active');
+
+        // Открыть список моделей
+        modelsOpen = true;
+        modelsList.classList.add('active');
+        modelsBtn.setAttribute('aria-expanded', 'true');
+
+        alert('Новый чат создан. Выберите модель для начала общения.');
+      } else {
+        alert('Ошибка создания нового чата: ' + (data.error || 'Неизвестная ошибка'));
+      }
+    } catch (e) {
+      alert('Ошибка сети при создании нового чата');
+      console.error(e);
+    }
+  });
+
+  // Авторизация
+
+  function openAuthModal(mode) {
+    authMode = mode;
+    authModalTitle.textContent = mode === 'login' ? 'Вход' : 'Регистрация';
+    authSubmitBtn.textContent = mode === 'login' ? 'Войти' : 'Зарегистрироваться';
+    apiKeyField.style.display = mode === 'register' ? 'block' : 'none';
+    switchAuthMode.textContent = mode === 'login' ? 'Нет аккаунта? Зарегистрироваться' : 'Есть аккаунт? Войти';
+    authForm.reset();
+    authModal.classList.add('active');
+  }
+
+  function closeAuthModal() {
+    authModal.classList.remove('active');
+  }
+
+  function updateAuthButtons() {
+    authButtons.innerHTML = '';
+    if (isAuthenticated) {
+      const logoutBtn = document.createElement('button');
+      logoutBtn.textContent = 'Выйти';
+      logoutBtn.addEventListener('click', logout);
+      authButtons.appendChild(logoutBtn);
+    } else {
+      const loginBtn = document.createElement('button');
+      loginBtn.textContent = 'Войти';
+      loginBtn.addEventListener('click', () => openAuthModal('login'));
+      const registerBtn = document.createElement('button');
+      registerBtn.textContent = 'Регистрация';
+      registerBtn.addEventListener('click', () => openAuthModal('register'));
+      authButtons.appendChild(loginBtn);
+      authButtons.appendChild(registerBtn);
+    }
+  }
+
+  async function logout() {
+    try {
+      const response = await fetch('/logout', { method: 'POST' });
+      const data = await response.json();
+      if (data.success) {
+        isAuthenticated = false;
+        selectedModel = null;
+        currentChatId = null;
+        clearChat();
+        chatHeader.textContent = 'Выберите модель и чат';
+        statusText.textContent = 'Модель не выбрана';
+        balanceText.textContent = 'Баланс: 0 ₽';
+        updateAuthButtons();
+        loadChats();
+        loadProviders();
+      } else {
+        alert('Ошибка при выходе');
+      }
+    } catch (e) {
+      alert('Ошибка сети или сервера');
+      console.error(e);
+    }
+  }
+
+  authForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(authForm);
+    const login = formData.get('login').trim();
+    const password = formData.get('password').trim();
+    const api_key = formData.get('api_key')?.trim();
+
+    if (!login || !password || (authMode === 'register' && !api_key)) {
+      alert('Пожалуйста, заполните все обязательные поля.');
+      return;
+    }
+
+    try {
+      const url = authMode === 'login' ? '/login' : '/register';
+      const payload = { login, password };
+      if (authMode === 'register') payload.api_key = api_key;
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        isAuthenticated = true;
+        updateAuthButtons();
+        closeAuthModal();
+        alert(authMode === 'login' ? 'Вход выполнен' : 'Регистрация успешна');
+        await loadProviders();
+        await loadChats();
+        await loadBalance();
+      } else {
+        alert(data.error || 'Ошибка при авторизации');
+      }
+    } catch (err) {
+      alert('Ошибка сети или сервера');
+      console.error(err);
+    }
+  });
+
+  switchAuthMode.addEventListener('click', () => {
+    openAuthModal(authMode === 'login' ? 'register' : 'login');
+  });
+
+  // События
+
+  hamburgerBtn.addEventListener('click', toggleSidebar);
+  modelsBtn.addEventListener('click', toggleModelsList);
+
+  sendBtn.addEventListener('click', sendMessage);
+
+  // Закрытие модалки по клику вне
+  authModal.addEventListener('click', (e) => {
+    if (e.target === authModal) closeAuthModal();
+  });
+
+  // Переключение темы
+  themeToggleBtn.addEventListener('click', () => {
+    document.body.classList.toggle('light-theme');
+    const isLight = document.body.classList.contains('light-theme');
+    themeToggleBtn.textContent = isLight ? '🌙' : '☀️';
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+  });
+
+  // Инициализация
+
+  async function init() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      document.body.classList.add('light-theme');
+      themeToggleBtn.textContent = '🌙';
+    } else {
+      themeToggleBtn.textContent = '☀️';
+    }
+
+    await checkAuth();
+    updateAuthButtons();
+
+    if (isAuthenticated) {
+      await loadProviders();
+      await loadChats();
+      await loadBalance();
+    } else {
+      chatList.innerHTML = '<li>Пожалуйста, войдите в систему</li>';
+    }
+  }
+
+  init();
+
+</script>
+
+</body>
+</html>

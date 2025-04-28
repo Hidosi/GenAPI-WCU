@@ -67,6 +67,11 @@ def find_network_and_model(model_name):
 def index():
     return render_template('index.html')
 
+@app.route('/mobile')
+@login_required
+def mobile():
+    return render_template('mobile.html')
+
 @app.route('/login', methods=['GET'])
 def login_page():
     if current_user.is_authenticated:
