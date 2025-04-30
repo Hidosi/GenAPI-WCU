@@ -1,4 +1,5 @@
 OpenAI:
+  icon_url: 'https://storage.yandexcloud.net/data-genapi-wcu/icons-llm/openai.svg'
   networks:
     - llm_id: 'gpt-4o'
       models:
@@ -44,6 +45,7 @@ OpenAI:
           output_price: 6.6 ₽
 
 xAI:
+  icon_url: 'https://storage.yandexcloud.net/data-genapi-wcu/icons-llm/XAI.png'
   networks:
     - llm_id: 'grok-3'
       models:
@@ -61,6 +63,7 @@ xAI:
           output_price: 0.1 ₽
 
 DeepSeek:
+  icon_url: 'https://storage.yandexcloud.net/data-genapi-wcu/icons-llm/deepseek.png'
   networks:
     - llm_id: 'deepseek-v3'
       models:
@@ -80,6 +83,7 @@ DeepSeek:
           output_price: 1.0 ₽
 
 Perplexity:
+  icon_url: 'https://storage.yandexcloud.net/data-genapi-wcu/icons-llm/perplexityai.png'
   networks:
     - llm_id: 'perplexity'
       models:
@@ -91,6 +95,7 @@ Perplexity:
           output_price: 0.4 ₽
 
 Claude:
+  icon_url: 'https://storage.yandexcloud.net/data-genapi-wcu/icons-llm/claude.webp'
   networks:
     - llm_id: 'claude'
       models:

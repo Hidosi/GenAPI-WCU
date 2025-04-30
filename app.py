@@ -62,10 +62,19 @@ def find_network_and_model(model_name):
                     return llm_id, model
     return None, None
 
+from flask import request
+
 @app.route('/')
-@login_required
 def index():
-    return render_template('index.html')
+    user_agent = request.headers.get('User-Agent', '').lower()
+    is_mobile = any(mobile_str in user_agent for mobile_str in ['iphone', 'android', 'blackberry', 'mobile', 'windows phone'])
+
+    if is_mobile:
+        # Отдаем мобильную версию
+        return render_template('mobile.html')
+    else:
+        # Отдаем web версию
+        return render_template('index.html')
 
 @app.route('/mobile')
 @login_required
@@ -92,6 +101,7 @@ def providers():
     providers_data = []
 
     for provider_name, provider_info in config.items():
+        icon_url = provider_info.get('icon_url', '')  # добавляем иконку провайдера
         networks = provider_info.get('networks', [])
         models_list = []
         for network in networks:
@@ -112,7 +122,8 @@ def providers():
         providers_data.append({
             'name': provider_name,
             'description': f'Models from {provider_name}',
-            'models': models_list
+            'models': models_list,
+            'icon_url': icon_url,  # передаем иконку
         })
 
     return jsonify(providers_data)
@@ -169,22 +180,26 @@ def chat_send():
     message_text = data.get('message')
     chat_id = data.get('chat_id')
 
-    if not message_text or not model_name:
+    if not message_text and not chat_id:
         return jsonify(success=False, error='Отсутствуют обязательные параметры')
 
     if not current_user.api_key:
         return jsonify(success=False, error='API-ключ не установлен для пользователя')
 
-    network_id, model = find_network_and_model(model_name)
-    if not network_id or not model:
-        return jsonify(success=False, error='Модель не найдена в конфигурации')
+    if model_name:
+        network_id, model = find_network_and_model(model_name)
+        if not network_id or not model:
+            return jsonify(success=False, error='Модель не найдена в конфигурации')
+    else:
+        network_id = None
+        model = None
 
     if chat_id:
         chat = Chat.query.filter_by(id=chat_id, user_id=current_user.id).first()
         if not chat:
             return jsonify(success=False, error='Чат не найден')
         # Обновляем модель, если изменилась
-        if chat.model_name != model_name:
+        if model_name and chat.model_name != model_name:
             chat.model_name = model_name
             db.session.commit()
     else:
@@ -192,12 +207,17 @@ def chat_send():
         db.session.add(chat)
         db.session.commit()
 
-    user_message = Message(chat_id=chat.id, role='user', content=message_text)
-    db.session.add(user_message)
-    db.session.commit()
+    if message_text:
+        user_message = Message(chat_id=chat.id, role='user', content=message_text)
+        db.session.add(user_message)
+        db.session.commit()
 
     messages = Message.query.filter_by(chat_id=chat.id).order_by(Message.created_at).all()
     context = [{'role': m.role, 'content': m.content} for m in messages]
+
+    if not model:
+        # Если модель не выбрана, просто возвращаем успех без ответа
+        return jsonify(success=True, message='Модель не выбрана', chat_id=chat.id)
 
     client = GenApiClient(current_user.api_key)
 
@@ -249,9 +269,10 @@ def chat_send():
         logger.exception("Ошибка при вызове GenAPI")
         assistant_text = f'Ошибка API: {e}'
 
-    assistant_message = Message(chat_id=chat.id, role='assistant', content=assistant_text)
-    db.session.add(assistant_message)
-    db.session.commit()
+    if message_text:
+        assistant_message = Message(chat_id=chat.id, role='assistant', content=assistant_text)
+        db.session.add(assistant_message)
+        db.session.commit()
 
     return jsonify(success=True, message=assistant_text, chat_id=chat.id)
 
@@ -277,12 +298,14 @@ def get_chat_messages(chat_id):
 def rename_chat(chat_id):
     data = request.json
     new_title = data.get('title', '').strip()
-    if not new_title:
-        return jsonify(success=False, error='Название не может быть пустым'), 400
+    model_name = data.get('model_name', None)
     chat = Chat.query.filter_by(id=chat_id, user_id=current_user.id).first()
     if not chat:
         return jsonify(success=False, error='Чат не найден'), 404
-    chat.title = new_title
+    if new_title:
+        chat.title = new_title
+    if model_name:
+        chat.model_name = model_name
     db.session.commit()
     return jsonify(success=True, title=new_title)
 

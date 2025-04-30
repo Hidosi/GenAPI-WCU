@@ -962,7 +962,12 @@
                 card.setAttribute('role', 'button');
                 card.setAttribute('aria-pressed', 'false');
                 card.innerHTML = `
-                    <div class="model-icon"></div>
+                    <div class="model-icon" style="
+                        background-image: url('${provider.icon_url || ''}');
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                        background-position: center;
+                    "></div>
                     <h3 class="model-name">${provider.name}</h3>
                     <p class="model-description">${provider.description}</p>
                 `;
